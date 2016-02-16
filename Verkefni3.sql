@@ -7,8 +7,16 @@ drop procedure if exists PassengerList $$
 create procedure PassengerList(flight_number CHAR(5), flight_date DATE)
 begin
 
+	-- variables for the header
 	declare flight_origin char(3);
 	declare flight_destination char(3);
+	
+	-- variables for the cursor
+	declare person_id varchar(35);
+	declare person_name varchar(75);
+	declare seat_row tinyint(4);
+	declare seat_num char(1);
+	declare seat_placement varchar(15);
 
 	declare cvs_string text;
 	
@@ -40,9 +48,18 @@ begin
 	
 	read_loop: loop
 		fetch passengerListCursor
-		into -- declare the variables at the top...
+		into person_id, person_name, seat_row, seat_num, seat_placement;
+		
+		set cvs_string = concat(cvs_string, person_id, ';', person_name, ';', seat_row, seat_num, ';', seat_placement, ';\n');
+		
+		if done
+		then
+			leave read_loop;
+		end if;
+	end loop;
+	close passengerListCursor;
 	
-	--select cvs_string;
+	select cvs_string;
 end $$
 delimiter ;
 
