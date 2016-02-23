@@ -17,6 +17,7 @@ CREATE PROCEDURE PassengerList(flight_number CHAR(5), flight_date DATE)
     DECLARE seat_row TINYINT(4);
     DECLARE seat_num CHAR(1);
     DECLARE seat_placement VARCHAR(15);
+    DECLARE plane_type VARCHAR(35);
 
     DECLARE cvs_string TEXT;
 
@@ -47,6 +48,12 @@ CREATE PROCEDURE PassengerList(flight_number CHAR(5), flight_date DATE)
     WHERE flightNumber = flight_number
     INTO flight_destination;
 
+    SELECT aircraftType
+    FROM aircrafts
+      JOIN flights ON aircrafts.aircraftID = flights.aircraftID
+    WHERE flightNumber = flight_number AND flightDate = flight_date
+    INTO plane_type;
+
     SET cvs_string = concat(flight_number, '_', flight_origin, '-', flight_destination, '_', flight_date, ':\n\n');
 
     OPEN passengerListCursor;
@@ -55,18 +62,21 @@ CREATE PROCEDURE PassengerList(flight_number CHAR(5), flight_date DATE)
       FETCH passengerListCursor
       INTO person_id, person_name, seat_row, seat_num, seat_placement;
 
-      SET cvs_string = concat(cvs_string, person_id, ';', person_name, ';', seat_row, seat_num, ';', seat_placement,
-                              ';\n');
-
       IF done
       THEN
         LEAVE read_loop;
       END IF;
+
+      SET cvs_string = concat(cvs_string, person_id, ';', person_name, ';', seat_row, seat_num, ';', seat_placement,
+                              ';\n');
     END LOOP;
     CLOSE passengerListCursor;
+
+    SET cvs_string = concat(cvs_string, '\nCARRIER: ', plane_type, '\nList Compiled ',
+                            cast(curdate() AS CHAR)); -- Virkar ekki!
 
     SELECT cvs_string;
   END $$
 DELIMITER ;
 
--- CALL PassengerList('FA501', '2014-09-19');
+-- CALL PassengerList('FA501', '2014-05-01');
