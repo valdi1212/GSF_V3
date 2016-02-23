@@ -50,12 +50,12 @@ begin
 		fetch passengerListCursor
 		into person_id, person_name, seat_row, seat_num, seat_placement;
 		
-		set cvs_string = concat(cvs_string, person_id, ';', person_name, ';', seat_row, seat_num, ';', seat_placement, ';\n');
-		
 		if done
 		then
 			leave read_loop;
 		end if;
+		
+		set cvs_string = concat(cvs_string, person_id, ';', person_name, ';', seat_row, seat_num, ';', seat_placement, ';\n');	
 	end loop;
 	close passengerListCursor;
 	
@@ -63,4 +63,4 @@ begin
 end $$
 delimiter ;
 
--- CALL PassengerList('FA501', '2014-09-19');
+-- CALL PassengerList('FA501', '2014-05-19');
