@@ -17,6 +17,7 @@ begin
 	declare seat_row tinyint(4);
 	declare seat_num char(1);
 	declare seat_placement varchar(15);
+	declare plane_type varchar(35);
 
 	declare cvs_string text;
 	
@@ -42,6 +43,12 @@ begin
 	where flightNumber = flight_number
 	into flight_destination;
 	
+	select aircraftType
+	from aircrafts
+	join flights on aircrafts.aircraftID = flights.aircraftID
+	where flightNumber = flight_number
+	into plane_type;
+	
 	set cvs_string = concat(flight_number, '_', flight_origin, '-', flight_destination, '_', flight_date, ':\n\n');
 	
 	open passengerListCursor;
@@ -59,8 +66,10 @@ begin
 	end loop;
 	close passengerListCursor;
 	
+	set cvs_string = concat(cvs_string, '\nCARRIER: ', plane_type, '\nList Compiled ', cast(curdate() AS char)); -- Virkar ekki!
+	
 	select cvs_string;
 end $$
 delimiter ;
 
--- CALL PassengerList('FA501', '2014-05-19');
+-- CALL PassengerList('FA501', '2014-05-01');
