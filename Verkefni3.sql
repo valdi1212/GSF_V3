@@ -171,52 +171,52 @@ CREATE PROCEDURE ScheduleRevenue(spec_year INT, year_quarter TINYINT)
     CASE year_quarter
       WHEN 1
       THEN (SELECT
-              concat(originatingAirport, '-', destinationAirport)                                                  AS 'Flight route',
+              concat(originatingAirport, '-', destinationAirport) AS 'Flight route',
               RouteRevenueByMonth(spec_year, 1 + ((year_quarter - 1) * 3), originatingAirport,
-                                  destinationAirport)                                                              AS 'jan',
+                                  destinationAirport)             AS 'jan',
               RouteRevenueByMonth(spec_year, 2 + ((year_quarter - 1) * 3), originatingAirport,
-                                  destinationAirport)                                                              AS 'feb',
+                                  destinationAirport)             AS 'feb',
               RouteRevenueByMonth(spec_year, 3 + ((year_quarter - 1) * 3), originatingAirport,
-                                  destinationAirport)                                                              AS 'mar'
+                                  destinationAirport)             AS 'mar'
             FROM flightschedules
               JOIN flights ON flightschedules.flightNumber = flights.flightNumber
             WHERE year(flightDate) = spec_year
             GROUP BY originatingAirport, destinationAirport);
       WHEN 2
       THEN (SELECT
-              concat(originatingAirport, '-', destinationAirport)                                                  AS 'Flight route',
+              concat(originatingAirport, '-', destinationAirport) AS 'Flight route',
               RouteRevenueByMonth(spec_year, 1 + ((year_quarter - 1) * 3), originatingAirport,
-                                  destinationAirport)                                                              AS 'apr',
+                                  destinationAirport)             AS 'apr',
               RouteRevenueByMonth(spec_year, 2 + ((year_quarter - 1) * 3), originatingAirport,
-                                  destinationAirport)                                                              AS 'may',
+                                  destinationAirport)             AS 'may',
               RouteRevenueByMonth(spec_year, 3 + ((year_quarter - 1) * 3), originatingAirport,
-                                  destinationAirport)                                                              AS 'jun'
+                                  destinationAirport)             AS 'jun'
             FROM flightschedules
               JOIN flights ON flightschedules.flightNumber = flights.flightNumber
             WHERE year(flightDate) = spec_year
             GROUP BY originatingAirport, destinationAirport);
       WHEN 3
       THEN (SELECT
-              concat(originatingAirport, '-', destinationAirport)                                                  AS 'Flight route',
+              concat(originatingAirport, '-', destinationAirport) AS 'Flight route',
               RouteRevenueByMonth(spec_year, 1 + ((year_quarter - 1) * 3), originatingAirport,
-                                  destinationAirport)                                                              AS 'jul',
+                                  destinationAirport)             AS 'jul',
               RouteRevenueByMonth(spec_year, 2 + ((year_quarter - 1) * 3), originatingAirport,
-                                  destinationAirport)                                                              AS 'aug',
+                                  destinationAirport)             AS 'aug',
               RouteRevenueByMonth(spec_year, 3 + ((year_quarter - 1) * 3), originatingAirport,
-                                  destinationAirport)                                                              AS 'sep'
+                                  destinationAirport)             AS 'sep'
             FROM flightschedules
               JOIN flights ON flightschedules.flightNumber = flights.flightNumber
             WHERE year(flightDate) = spec_year
             GROUP BY originatingAirport, destinationAirport);
       WHEN 4
       THEN (SELECT
-              concat(originatingAirport, '-', destinationAirport)                                                  AS 'Flight route',
+              concat(originatingAirport, '-', destinationAirport) AS 'Flight route',
               RouteRevenueByMonth(spec_year, 1 + ((year_quarter - 1) * 3), originatingAirport,
-                                  destinationAirport)                                                              AS 'oct',
+                                  destinationAirport)             AS 'oct',
               RouteRevenueByMonth(spec_year, 2 + ((year_quarter - 1) * 3), originatingAirport,
-                                  destinationAirport)                                                              AS 'nov',
+                                  destinationAirport)             AS 'nov',
               RouteRevenueByMonth(spec_year, 3 + ((year_quarter - 1) * 3), originatingAirport,
-                                  destinationAirport)                                                              AS 'dec'
+                                  destinationAirport)             AS 'dec'
             FROM flightschedules
               JOIN flights ON flightschedules.flightNumber = flights.flightNumber
             WHERE year(flightDate) = spec_year
@@ -234,10 +234,14 @@ DELIMITER $$
 DROP VIEW IF EXISTS ValidPriceOffers $$
 CREATE VIEW ValidPriceOffers AS
   SELECT
-    prices.amount,
-    priceCategories.categoryName,
-    priceCategories.minimumPrice,
-    priceCategories.refundable
+    amount           AS 'Price',
+    categoryName     AS 'Category',
+    minimumPrice     AS 'Minimum price',
+    CASE refundable
+    WHEN 0
+      THEN 'No'
+    WHEN 1
+      THEN 'Yes' END AS 'Refundable'
   -- gildandi farrými?
   FROM prices
     JOIN pricecategories ON prices.priceCategoryID = pricecategories.categoryID
@@ -249,12 +253,10 @@ DELIMITER $$
 DROP VIEW IF EXISTS StopoverDestinations $$
 CREATE VIEW StopoverDestinations AS
   SELECT
-    flightschedules.flightNumber,
-    flightschedules.originatingAirport,
-    -- gerði ráð fyrir að flugleið meinar byrjunar- og endastað
-    flightschedules.destinationAirport,
-    stopovers.IATAcode,
-    stopovers.stopTime
+    flightschedules.flightNumber                        AS 'Flight number',
+    concat(originatingAirport, '-', destinationAirport) AS 'Flight route',
+    IATAcode                                            AS 'IATA code',
+    stopTime                                            AS 'Stop time'
   FROM flightschedules
     JOIN stopovers ON flightschedules.flightNumber = stopovers.flightNumber;
 DELIMITER ;
@@ -264,10 +266,10 @@ DELIMITER $$
 DROP VIEW IF EXISTS AircraftFirstClassSeats $$
 CREATE VIEW AircraftFirstClassSeats AS
   SELECT
-    aircraftID,
-    seatID,
-    rowNumber,
-    seatNumber
+    aircraftID AS 'Aircraft ID',
+    seatID AS 'Seat ID',
+    rowNumber as 'Seat row',
+    seatNumber as 'Seat number'
   FROM aircraftseats
   WHERE classID = 1;
 DELIMITER ;
@@ -277,10 +279,10 @@ DELIMITER $$
 DROP VIEW IF EXISTS AirportInfo $$
 CREATE VIEW AirportInfo AS
   SELECT
-    IATAcode,
-    airportName,
-    cityName,
-    countryName,
+    IATAcode as 'IATA code',
+    airportName as 'Airport name',
+    cityName as 'City name',
+    countryName as 'Country name',
     alpha336612
   FROM airports
     JOIN cities ON airports.cityID = cities.cityID
@@ -293,7 +295,7 @@ DELIMITER ;
 CALL PassengerList('FA501', '2014-05-01');
 SELECT * FROM ValidPriceOffers;
 SELECT * FROM StopoverDestinations;
-SELECT * FROM AircraftFirsClassSeats;
+SELECT * FROM AircraftFirstClassSeats;
 SELECT * FROM AirportInfo;
 CALL AircraftSchedule('TF-CNA', 'KEF');
 SELECT RouteRevenueByMonth(2014, 5, 'KEF', 'OSL');
